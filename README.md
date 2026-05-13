@@ -1,7 +1,5 @@
 # TechControl - Sistemas de Inventario IT
 
-![TechControl Banner](https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2070)
-
 ## Una solución integral para la gestión de activos tecnológicos
 
 **TechControl** es una plataforma de gestión de inventario de última generación diseñada para centralizar, optimizar y auditar todos los recursos de infraestructura IT. Desde el control minucioso de consumibles hasta el seguimiento de hardware crítico, TechControl ofrece una interfaz premium y nítida enfocada en la eficiencia operativa.
@@ -56,11 +54,24 @@ El ecosistema de TechControl está construido sobre un stack moderno y de alto r
 
 ## 🎨 Filosofía de Diseño
 
-TechControl no solo gestiona datos; ofrece una experiencia. El diseño se centra en la **nitidez visual** y el **contaste optimizado**, asegurando que la información crítica sea siempre legible y destaque mediante una jerarquía cromática inteligente.
+TechControl no solo gestiona datos; ofrece una experiencia. El diseño se centra en la **nitidez visual** y el **contraste optimizado**, asegurando que la información crítica sea siempre legible y destaque mediante una jerarquía cromática inteligente.
 
 - **Modo Claro**: Estructuras definidas, bordes precisos y tipografía de alto contraste.
 - **Modo Oscuro**: Estética "glassmorphism" profunda con acentos de color vibrantes.
 - **Responsividad**: Experiencia adaptativa impecable desde dispositivos móviles hasta estaciones de trabajo 4K.
+
+---
+
+## 🖼️ Vista de la Interfaz
+
+### Gestión de Equipamiento
+![Equipos](C:\Users\Sitemas\.gemini\antigravity\brain\2afc1e44-ba8f-4c28-8cce-c4962d42a3c5\media__1778685577142.png)
+
+### Control de Impresión
+![Impresoras](C:\Users\Sitemas\.gemini\antigravity\brain\2afc1e44-ba8f-4c28-8cce-c4962d42a3c5\media__1778685606241.png)
+
+### Monitoreo de Pantallas
+![Monitores](C:\Users\Sitemas\.gemini\antigravity\brain\2afc1e44-ba8f-4c28-8cce-c4962d42a3c5\media__1778685624603.png)
 
 ---
 
