@@ -302,10 +302,6 @@ export function OrdersPage() {
           <h1 className="text-2xl font-bold tracking-tight">Pedidos a Compras</h1>
           <p className="text-sm text-muted-foreground">{orders.length} pedidos registrados</p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="size-4" />
-          Nuevo pedido
-        </Button>
       </div>
 
       {/* Status summary */}
@@ -369,6 +365,11 @@ export function OrdersPage() {
             <SelectItem value="low">Baja</SelectItem>
           </SelectContent>
         </Select>
+
+        <Button onClick={openCreate} className="ml-auto">
+          <Plus className="size-4" />
+          Nuevo pedido
+        </Button>
       </div>
 
       {/* Orders */}
