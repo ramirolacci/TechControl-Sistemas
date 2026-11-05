@@ -83,7 +83,10 @@ export function PersonalPage() {
     }
     
     if (editingUser) {
-      updateUser(editingUser.id, form);
+      updateUser(editingUser.id, {
+        ...form,
+        avatarUrl: editingUser.avatarUrl,
+      });
       toast.success("Datos actualizados");
     } else {
       addUser(form);
@@ -153,7 +156,21 @@ export function PersonalPage() {
             const totalHours = userGuardias.reduce((sum, g) => sum + g.hours, 0);
             const approvedHours = userGuardias.filter(g => g.status === "approved").reduce((sum, g) => sum + g.hours, 0);
 
-            const imageUrl = u.avatarUrl ? `${import.meta.env.BASE_URL || "/"}${u.avatarUrl}` : null;
+            const getCollaboratorAvatarUrl = (user: UserType) => {
+              let p = user.avatarUrl;
+              if (!p) {
+                const name = (user.fullName || user.username || "").toLowerCase();
+                if (name.includes("facundo") || name.includes("facu")) p = "Colaboradores/Facu.jpg";
+                else if (name.includes("gustavo") || name.includes("gus")) p = "Colaboradores/Gus.jpg";
+                else if (name.includes("ramiro") || name.includes("rami")) p = "Colaboradores/Rami.png";
+              }
+              if (!p) return null;
+              const clean = p.replace(/^\/+/, "");
+              const base = import.meta.env.BASE_URL || "/";
+              const normalizedBase = base.endsWith("/") ? base : `${base}/`;
+              return `${normalizedBase}${clean}`;
+            };
+            const imageUrl = getCollaboratorAvatarUrl(u);
             const isBoss = u.username === "gustavo.gonzalez";
             const bannerGradient = isBoss 
               ? "from-amber-500/20 via-purple-600/10 to-transparent bg-amber-500/5" 
@@ -178,8 +195,24 @@ export function PersonalPage() {
                             alt={u.fullName} 
                             className="w-full h-full object-cover" 
                             onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              const fallback = e.currentTarget.parentElement?.querySelector('.avatar-fallback') as HTMLElement;
+                              const target = e.currentTarget;
+                              if (target.dataset.triedFallback !== "true") {
+                                target.dataset.triedFallback = "true";
+                                if (target.src.includes("/fabrica/sistemas/")) {
+                                  target.src = target.src.replace("/fabrica/sistemas/", "/");
+                                  return;
+                                }
+                                if (target.src.toLowerCase().endsWith(".png")) {
+                                  target.src = target.src.replace(/\.png$/i, ".jpg");
+                                  return;
+                                }
+                                if (target.src.toLowerCase().endsWith(".jpg")) {
+                                  target.src = target.src.replace(/\.jpg$/i, ".png");
+                                  return;
+                                }
+                              }
+                              target.style.display = 'none';
+                              const fallback = target.parentElement?.querySelector('.avatar-fallback') as HTMLElement;
                               if (fallback) fallback.style.display = 'flex';
                             }}
                           />

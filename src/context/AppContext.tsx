@@ -365,7 +365,7 @@ const ensureDataliveObjective = (existingObjectives: Objective[]): Objective[] =
     }
   }
 
-  const dataliveIndex = list.findIndex(o => 
+  const dataliveIndex = list.findIndex(o =>
     o.title.toLowerCase().includes("datalive") || o.id === "obj-datalive-migration"
   );
 
@@ -421,11 +421,11 @@ const dedupeSubTasks = (tasks: any[]): any[] => {
       map.set(key, { ...t, title: t.title || t.name, name: t.name || t.title });
     } else {
       const isCompleted = Boolean(t.completed || existing.completed);
-      const finalTitle = (t.title && t.title.includes(":")) 
-        ? t.title 
-        : ((existing.title && existing.title.includes(":")) 
-            ? existing.title 
-            : (t.title || existing.title || t.name || existing.name));
+      const finalTitle = (t.title && t.title.includes(":"))
+        ? t.title
+        : ((existing.title && existing.title.includes(":"))
+          ? existing.title
+          : (t.title || existing.title || t.name || existing.name));
       const imageUrl = t.imageUrl || existing.imageUrl;
       map.set(key, {
         ...existing,
@@ -535,7 +535,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [printers, setPrinters] = useState<Printer[]>(initialPrinters);
   const [notebooks, setNotebooks] = useState<Notebook[]>(initialNotebooks);
   const [monitors, setMonitors] = useState<Monitor[]>(initialMonitors);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>(() => {
+    const resolveCollabAvatar = (fullName: string, currentAvatar?: string | null) => {
+      if (currentAvatar) return currentAvatar;
+      const name = (fullName || "").toLowerCase();
+      if (name.includes("facundo")) return "Colaboradores/Facu.jpg";
+      if (name.includes("gustavo")) return "Colaboradores/Gus.jpg";
+      if (name.includes("ramiro")) return "Colaboradores/Rami.png";
+      return null;
+    };
+    const saved = localStorage.getItem("techcontrol_users");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((u: User) => {
+            const initial = initialUsers.find(iu => iu.id === u.id || iu.fullName.toLowerCase() === (u.fullName || "").toLowerCase());
+            return {
+              ...u,
+              avatarUrl: resolveCollabAvatar(u.fullName, u.avatarUrl || initial?.avatarUrl),
+            };
+          });
+        }
+      } catch (e) { }
+    }
+    return initialUsers;
+  });
   const [orders, setOrders] = useState<Order[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
   const [dataliveTVs, setDataliveTVs] = useState<DataliveTV[]>(initialTVs);
@@ -562,7 +587,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [specialTasks, setSpecialTasks] = useState<SpecialTask[]>(() => {
     const saved = localStorage.getItem("techcontrol_special_tasks");
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try { return JSON.parse(saved); } catch (e) { }
     }
     return [];
   });
@@ -583,7 +608,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       "gustavo.gonzalez@migusto.com.ar",
       "facundocarrizo@migusto.com.ar", // Duplicate clean check
     ].map(e => e.toLowerCase().trim());
-    
+
     const marketingEmails = [
       "sharonmoner@migusto.com.ar",
       "camilaferro@migusto.com.ar",
@@ -698,7 +723,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             if (Array.isArray(parsed) && parsed.length > 0) {
               sourceGuardias = parsed;
             }
-          } catch (e) {}
+          } catch (e) { }
         }
         if (sourceGuardias.length === 0) {
           sourceGuardias = initialGuardias;
@@ -723,7 +748,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             setGuardias(parsed);
             return parsed;
           }
-        } catch (e) {}
+        } catch (e) { }
       }
       setGuardias(initialGuardias);
       return initialGuardias;
@@ -899,18 +924,70 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           });
       }
 
-      // Use initialUsers as authoritative list (merged with dbUsers details if available)
-      const userMap = new Map<string, User>();
-      initialUsers.forEach(u => userMap.set(u.id, u));
+      // Read saved local users first so user edits are not lost on refresh
+      const savedUsersRaw = localStorage.getItem("techcontrol_users");
+      const localUsersMap = new Map<string, User>();
+      if (savedUsersRaw) {
+        try {
+          const parsed = JSON.parse(savedUsersRaw);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((u: User) => {
+              if (u?.id) localUsersMap.set(u.id, u);
+            });
+          }
+        } catch (e) { }
+      }
 
+      // Helper to ensure collaborator avatars are always preserved
+      const resolveCollaboratorAvatar = (fullName: string, currentAvatar?: string | null) => {
+        if (currentAvatar) return currentAvatar;
+        const name = (fullName || "").toLowerCase();
+        if (name.includes("facundo")) return "Colaboradores/Facu.jpg";
+        if (name.includes("gustavo")) return "Colaboradores/Gus.jpg";
+        if (name.includes("ramiro")) return "Colaboradores/Rami.png";
+        return null;
+      };
+
+      // Use initialUsers as baseline, overlaid with local modifications
+      const userMap = new Map<string, User>();
+      initialUsers.forEach(u => {
+        const local = localUsersMap.get(u.id);
+        const resolvedAvatar = resolveCollaboratorAvatar(u.fullName, local?.avatarUrl || u.avatarUrl);
+        userMap.set(u.id, local ? { ...u, ...local, avatarUrl: resolvedAvatar } : { ...u, avatarUrl: resolvedAvatar });
+      });
+
+      // Also keep any custom user created locally that wasn't in initialUsers
+      localUsersMap.forEach((u, id) => {
+        if (!userMap.has(id)) {
+          const resolvedAvatar = resolveCollaboratorAvatar(u.fullName, u.avatarUrl);
+          userMap.set(id, { ...u, avatarUrl: resolvedAvatar });
+        }
+      });
+
+      // Overlay with dbUsers details from Supabase if available
       dbUsers.forEach(u => {
         const existingKey = Array.from(userMap.entries()).find(
           ([_, existing]) => existing.id === u.id || existing.fullName.toLowerCase() === u.fullName.toLowerCase()
         )?.[0];
         if (existingKey) {
-          userMap.set(existingKey, { ...userMap.get(existingKey), ...u });
+          const current = userMap.get(existingKey)!;
+          const initial = initialUsers.find(iu => iu.id === current.id || iu.fullName.toLowerCase() === current.fullName.toLowerCase());
+          const resolvedAvatar = resolveCollaboratorAvatar(
+            current.fullName,
+            u.avatarUrl || current.avatarUrl || initial?.avatarUrl
+          );
+          userMap.set(existingKey, {
+            ...current,
+            ...u,
+            email: u.email || current.email,
+            role: u.role || current.role,
+            phone: u.phone || current.phone,
+            username: u.username || current.username,
+            avatarUrl: resolvedAvatar,
+          });
         } else {
-          userMap.set(u.id, u);
+          const resolvedAvatar = resolveCollaboratorAvatar(u.fullName, u.avatarUrl);
+          userMap.set(u.id, { ...u, avatarUrl: resolvedAvatar });
         }
       });
 
@@ -1018,7 +1095,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (saved) {
           try {
             localNotes = JSON.parse(saved);
-          } catch (e) {}
+          } catch (e) { }
         }
         const localNoteIds = new Set(localNotes.map(n => n.id));
         const missingInitialNotes = initialNotes.filter(n => !localNoteIds.has(n.id));
@@ -1071,7 +1148,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           createdAt: c.created_at,
           updatedAt: c.updated_at
         }));
-        
+
         if (mappedCreds.length === 0) {
           const SEED_DATABASES: DatabaseCredential[] = [
             { id: "db-1", name: "MiGusto DB 1", engine: "postgres", host: "database1@migusto.com.ar", password: "MiGusto123.", project1: "Fabrica MES", project2: "Romi Rooms", createdAt: now(), updatedAt: now() },
@@ -1093,7 +1170,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             project_2: c.project2 || null,
             created_at: c.createdAt,
             updated_at: c.updatedAt
-          }))).then(() => {});
+          }))).then(() => { });
         } else {
           mappedCreds.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
           setDatabaseCredentials(mappedCreds);
@@ -1188,7 +1265,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const saved = localStorage.getItem("techcontrol_special_tasks");
         let localTasks: SpecialTask[] = [];
         if (saved) {
-          try { localTasks = JSON.parse(saved); } catch (e) {}
+          try { localTasks = JSON.parse(saved); } catch (e) { }
         }
 
         const mergedSpecialTasks = mappedSpecialTasks.map(dbTask => {
@@ -1285,7 +1362,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       } else {
         const saved = localStorage.getItem("techcontrol_holiday_assignments");
         if (saved) {
-          try { setHolidayAssignments(JSON.parse(saved)); } catch (e) {}
+          try { setHolidayAssignments(JSON.parse(saved)); } catch (e) { }
         }
       }
 
@@ -1295,7 +1372,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       } else {
         const saved = localStorage.getItem("techcontrol_turn_overrides");
         if (saved) {
-          try { setTurnOverrides(JSON.parse(saved)); } catch (e) {}
+          try { setTurnOverrides(JSON.parse(saved)); } catch (e) { }
         }
       }
 
@@ -1455,7 +1532,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const saveSpecialEvent = useCallback(async (event: SpecialEvent) => {
     setSpecialEvents(prev => {
       const exists = prev.some(e => e.id === event.id);
-      const next = exists 
+      const next = exists
         ? prev.map(e => e.id === event.id ? event : e)
         : [...prev, event];
       safeLocalStorageSetItem("techcontrol_special_events", next);
@@ -1665,7 +1742,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           safeLocalStorageSetItem("techcontrol_product_prices", updated);
           return;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     setProductPrices(mocks);
     safeLocalStorageSetItem("techcontrol_product_prices", mocks);
@@ -1675,11 +1752,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     try {
       const mocks = getMockPrices();
       const { data, error } = await supabase.from("product_prices").select("*").order("name", { ascending: true });
-      
+
       let dbMapped: ProductPrice[] = [];
-      let dbHasIsPremium = false;
       if (data && !error && data.length > 0) {
-        dbHasIsPremium = "is_premium" in (data[0] || {});
         dbMapped = data.map((p: any) => ({
           id: String(p.id),
           name: p.name,
@@ -1699,7 +1774,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         try {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed)) localSaved = parsed;
-        } catch (e) {}
+        } catch (e) { }
       }
 
       let deletedIds = new Set<string>();
@@ -1708,7 +1783,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         try {
           const parsed = JSON.parse(savedDeleted);
           if (Array.isArray(parsed)) deletedIds = new Set(parsed);
-        } catch (e) {}
+        } catch (e) { }
       }
 
       const mergedMap = new Map<string, ProductPrice>();
@@ -1746,36 +1821,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setProductPrices(finalPrices);
       safeLocalStorageSetItem("techcontrol_product_prices", finalPrices);
 
-      // Background sync: send any local/missing prices to Supabase so DB stays complete
-      const dbIds = new Set(dbMapped.map(d => d.id));
-      const itemsToSyncToDb = finalPrices.filter(p => !dbIds.has(p.id) || (dbMapped.find(d => d.id === p.id && Number(d.price) !== Number(p.price))));
-      
-      if (itemsToSyncToDb.length > 0) {
-        const payload = itemsToSyncToDb.map(p => ({
-          id: p.id,
-          name: p.name,
-          category: p.category,
-          price: p.price,
-          ...(dbHasIsPremium ? { is_premium: p.isPremium || false } : {}),
-          created_at: p.createdAt,
-          updated_at: p.updatedAt
-        }));
 
-        supabase.from("product_prices").upsert(payload).then(({ error: upsertErr }) => {
-          if (upsertErr) {
-            // Fallback retry without is_premium if column is not in DB table
-            const fallbackPayload = itemsToSyncToDb.map(p => ({
-              id: p.id,
-              name: p.name,
-              category: p.category,
-              price: p.price,
-              created_at: p.createdAt,
-              updated_at: p.updatedAt
-            }));
-            void supabase.from("product_prices").upsert(fallbackPayload);
-          }
-        });
-      }
     } catch (err) {
       console.warn("Error al sincronizar precios:", err);
       loadLocalPricesFallback();
@@ -1865,18 +1911,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const savedDeleted = localStorage.getItem("techcontrol_deleted_product_prices");
       let deletedList: string[] = [];
       if (savedDeleted) {
-        try { deletedList = JSON.parse(savedDeleted); } catch (e) {}
+        try { deletedList = JSON.parse(savedDeleted); } catch (e) { }
       }
       if (!deletedList.includes(id)) {
         deletedList.push(id);
         safeLocalStorageSetItem("techcontrol_deleted_product_prices", deletedList);
       }
-    } catch (e) {}
+    } catch (e) { }
 
     try {
       const { error } = await supabase.from("product_prices").delete().eq("id", id);
       if (error) console.warn("Error deleting product price from Supabase:", error);
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   useEffect(() => {
@@ -2106,7 +2152,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const id = genId();
       const createdAt = now();
       const newItem: StockItem = { ...item, id, createdAt, updatedAt: createdAt };
-      
+
       setStockItems((prev) => [...prev, newItem]);
 
       const { error } = await supabase.from("stock_items").insert({
@@ -2233,7 +2279,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (data.brand !== undefined) updateData.brand = data.brand;
     if (data.model !== undefined) updateData.model = data.model;
     if (data.sector !== undefined) updateData.sector = data.sector;
-    
+
     // Always persist calculated status and branch
     updateData.status = updatedPrinterObj.status;
     updateData.branch = updatedPrinterObj.branch;
@@ -2558,23 +2604,46 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateUser = useCallback(async (id: string, data: Partial<User>) => {
     setUsers((prev) => {
-      const next = prev.map((u) => (u.id === id ? { ...u, ...data, updatedAt: now() } : u));
+      const next = prev.map((u) => {
+        if (u.id === id) {
+          const updated = { ...u, ...data, updatedAt: now() };
+          if (!updated.avatarUrl) {
+            const initial = initialUsers.find(iu => iu.id === id || iu.fullName.toLowerCase() === updated.fullName.toLowerCase());
+            const name = (updated.fullName || "").toLowerCase();
+            updated.avatarUrl = initial?.avatarUrl || (
+              name.includes("facundo") ? "Colaboradores/Facu.jpg" :
+              name.includes("gustavo") ? "Colaboradores/Gus.jpg" :
+              name.includes("ramiro") ? "Colaboradores/Rami.png" : null
+            );
+          }
+          return updated;
+        }
+        return u;
+      });
       safeLocalStorageSetItem("techcontrol_users", next);
       return next;
     });
 
     try {
       const updateData: Record<string, unknown> = { updated_at: now() };
-      if (data.fullName    !== undefined) updateData.full_name  = data.fullName;
-      if (data.username    !== undefined) updateData.username   = data.username;
-      if (data.email       !== undefined) updateData.email      = data.email;
-      if (data.phone       !== undefined) updateData.phone      = data.phone;
-      if (data.location    !== undefined) updateData.location   = data.location;
-      if (data.active      !== undefined) updateData.active     = data.active;
-      if (data.role        !== undefined) updateData.role       = data.role;
-      if (data.avatarUrl   !== undefined) updateData.avatar_url = data.avatarUrl;
+      if (data.fullName !== undefined) updateData.full_name = data.fullName;
+      if (data.username !== undefined) updateData.username = data.username;
+      if (data.email !== undefined) updateData.email = data.email;
+      if (data.phone !== undefined) updateData.phone = data.phone;
+      if (data.location !== undefined) updateData.location = data.location;
+      if (data.active !== undefined) updateData.active = data.active;
+      if (data.role !== undefined) updateData.role = data.role;
+      if (data.avatarUrl !== undefined) updateData.avatar_url = data.avatarUrl;
 
-      const { error } = await supabase.from("users").update(updateData).eq("id", id);
+      let { error } = await supabase.from("users").upsert({ id, ...updateData });
+      if (error && error.message?.toLowerCase().includes("role")) {
+        console.warn("Supabase users table missing role column, saving other fields:", error.message);
+        const { role: _, ...dataWithoutRole } = updateData;
+        const { error: retryError } = await supabase.from("users").upsert({ id, ...dataWithoutRole });
+        if (retryError) {
+          console.warn("Supabase user update retry warning:", retryError.message);
+        }
+      }
       if (error) {
         console.warn("Supabase user update warning:", error.message);
       }
@@ -2799,14 +2868,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     try {
       const [startH, startM] = startTime.split(":").map(Number);
       const [endH, endM] = endTime.split(":").map(Number);
-      
+
       let startMinutes = startH * 60 + startM;
       let endMinutes = endH * 60 + endM;
-      
+
       if (endMinutes < startMinutes) {
         endMinutes += 24 * 60;
       }
-      
+
       const diffMinutes = endMinutes - startMinutes;
       return Math.round((diffMinutes / 60) * 100) / 100;
     } catch (e) {
@@ -3156,7 +3225,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const newCred: DatabaseCredential = { id, ...credential, createdAt, updatedAt };
 
     setDatabaseCredentials(prev => {
-      const next = [newCred, ...prev].sort((a, b) => 
+      const next = [newCred, ...prev].sort((a, b) =>
         a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
       );
       safeLocalStorageSetItem("techcontrol_database_credentials", next);
@@ -3192,7 +3261,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const updateDatabaseCredential = useCallback(async (id: string, data: Partial<DatabaseCredential>) => {
     const updatedAt = now();
     setDatabaseCredentials(prev => {
-      const next = prev.map(c => c.id === id ? { ...c, ...data, updatedAt } : c).sort((a, b) => 
+      const next = prev.map(c => c.id === id ? { ...c, ...data, updatedAt } : c).sort((a, b) =>
         a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
       );
       safeLocalStorageSetItem("techcontrol_database_credentials", next);

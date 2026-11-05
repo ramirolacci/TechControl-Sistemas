@@ -108,9 +108,17 @@ function CollaboratorAvatar({
   userName: string;
   avatarUrl?: string | null;
 }) {
-  const imageUrl = avatarUrl
-    ? `${import.meta.env.BASE_URL || "/"}${avatarUrl}`
-    : null;
+  let pathStr = avatarUrl;
+  if (!pathStr) {
+    const name = (userName || "").toLowerCase();
+    if (name.includes("facundo") || name.includes("facu")) pathStr = "Colaboradores/Facu.jpg";
+    else if (name.includes("gustavo") || name.includes("gus")) pathStr = "Colaboradores/Gus.jpg";
+    else if (name.includes("ramiro") || name.includes("rami")) pathStr = "Colaboradores/Rami.png";
+  }
+  const clean = pathStr ? pathStr.replace(/^\/+/, "") : "";
+  const base = import.meta.env.BASE_URL || "/";
+  const normalizedBase = base.endsWith("/") ? base : `${base}/`;
+  const imageUrl = clean ? `${normalizedBase}${clean}` : null;
 
   return (
     <Avatar size="sm" className="size-7 shrink-0 border border-border/50">

@@ -1564,7 +1564,7 @@ export const users: User[] = [
     "fullName": "Ramiro Lacci",
     "email": null,
     "location": "Sistemas",
-    "avatarUrl": "Colaboradores/Rami.jpg",
+    "avatarUrl": "Colaboradores/Rami.png",
     "active": true,
     "createdAt": "2026-01-01T08:00:00Z",
     "updatedAt": "2026-01-01T08:00:00Z"
