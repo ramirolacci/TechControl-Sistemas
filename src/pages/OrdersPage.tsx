@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useApp } from "@/context/AppContext";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { AutoResizeTextarea } from "@/components/shared/AutoResizeTextarea";
 import {
   orderStatusLabel,
   orderStatusColor,
@@ -311,39 +312,46 @@ export function OrdersPage() {
           <h1 className="text-2xl font-bold tracking-tight">Pedidos a Compras</h1>
           <p className="text-sm text-muted-foreground">{orders.length} pedidos registrados</p>
         </div>
-        <Button onClick={openCreate} className="sm:hidden w-fit">
-          <Plus className="size-4" />
-          Nuevo pedido
-        </Button>
       </div>
 
-      {/* Status summary - 3 in first row, 2 in second row on mobile */}
-      <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2">
+      {/* Status summary cards - full width */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 w-full">
         {[
           { status: "requested" as OrderStatus, label: "Solicitados" },
           { status: "in-process" as OrderStatus, label: "En proceso" },
           { status: "ordered" as OrderStatus, label: "Pedido realizado" },
           { status: "delivered" as OrderStatus, label: "Entregados" },
           { status: "cancelled" as OrderStatus, label: "Cancelados" },
-        ].map(({ status, label }) => (
-          <button
-            key={status}
-            onClick={() => setFilterStatus(filterStatus === status ? "all" : status)}
-            className={cn(
-              "flex items-center justify-center gap-1 sm:gap-2 rounded-full border px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-medium transition-all min-w-0 truncate",
-              orderStatusColor(status),
-              filterStatus === status ? "ring-2 ring-primary ring-offset-2" : "opacity-80 hover:opacity-100"
-            )}
-          >
-            <span className="text-xs sm:text-base font-bold shrink-0">{statsCounts[status]}</span>
-            <span className="truncate">{label}</span>
-          </button>
-        ))}
+        ].map(({ status, label }) => {
+          const isSelected = filterStatus === status;
+          return (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setFilterStatus(isSelected ? "all" : status)}
+              className={cn(
+                "flex flex-col justify-between p-3.5 sm:p-4 rounded-xl border text-left transition-all cursor-pointer shadow-xs",
+                orderStatusColor(status),
+                isSelected
+                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background font-semibold scale-[1.01]"
+                  : "opacity-85 hover:opacity-100 hover:scale-[1.01]"
+              )}
+            >
+              <div className="flex items-center justify-between w-full">
+                <span className="text-[11px] sm:text-xs font-semibold tracking-wider uppercase truncate">{label}</span>
+                <span className={cn("size-2 rounded-full shrink-0", isSelected ? "bg-current animate-pulse" : "opacity-40 bg-current")} />
+              </div>
+              <span className="text-2xl sm:text-3xl font-black mt-2 tracking-tight">
+                {statsCounts[status]}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Filters */}
-      <div className="space-y-3">
-        <div className="relative w-full">
+      {/* Search, Filters and Action in one line */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar por ítem o solicitante..."
@@ -352,39 +360,37 @@ export function OrdersPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="flex-1 min-w-0">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
-              <SelectItem value="requested">Solicitado</SelectItem>
-              <SelectItem value="in-process">En proceso</SelectItem>
-              <SelectItem value="ordered">Pedido realizado</SelectItem>
-              <SelectItem value="delivered">Entregado</SelectItem>
-              <SelectItem value="returned">Devuelto</SelectItem>
-              <SelectItem value="cancelled">Cancelado</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filterPriority} onValueChange={setFilterPriority}>
-            <SelectTrigger className="flex-1 min-w-0">
-              <SelectValue placeholder="Prioridad" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las prioridades</SelectItem>
-              <SelectItem value="critical">Crítica</SelectItem>
-              <SelectItem value="high">Alta</SelectItem>
-              <SelectItem value="medium">Media</SelectItem>
-              <SelectItem value="low">Baja</SelectItem>
-            </SelectContent>
-          </Select>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-full sm:w-[170px] shrink-0 cursor-pointer">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent position="popper" className="duration-150 ease-out">
+            <SelectItem value="all" className="cursor-pointer">Todos los estados</SelectItem>
+            <SelectItem value="requested" className="cursor-pointer">Solicitado</SelectItem>
+            <SelectItem value="in-process" className="cursor-pointer">En proceso</SelectItem>
+            <SelectItem value="ordered" className="cursor-pointer">Pedido realizado</SelectItem>
+            <SelectItem value="delivered" className="cursor-pointer">Entregado</SelectItem>
+            <SelectItem value="returned" className="cursor-pointer">Devuelto</SelectItem>
+            <SelectItem value="cancelled" className="cursor-pointer">Cancelado</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterPriority} onValueChange={setFilterPriority}>
+          <SelectTrigger className="w-full sm:w-[170px] shrink-0 cursor-pointer">
+            <SelectValue placeholder="Prioridad" />
+          </SelectTrigger>
+          <SelectContent position="popper" className="duration-150 ease-out">
+            <SelectItem value="all" className="cursor-pointer">Todas las prioridades</SelectItem>
+            <SelectItem value="critical" className="cursor-pointer">Crítica</SelectItem>
+            <SelectItem value="high" className="cursor-pointer">Alta</SelectItem>
+            <SelectItem value="medium" className="cursor-pointer">Media</SelectItem>
+            <SelectItem value="low" className="cursor-pointer">Baja</SelectItem>
+          </SelectContent>
+        </Select>
 
-          <Button onClick={openCreate} className="ml-auto hidden sm:flex shrink-0">
-            <Plus className="size-4" />
-            Nuevo pedido
-          </Button>
-        </div>
+        <Button onClick={openCreate} className="shrink-0 cursor-pointer">
+          <Plus className="size-4 mr-1.5" />
+          Nuevo pedido
+        </Button>
       </div>
 
       {/* Orders */}
@@ -410,7 +416,7 @@ export function OrdersPage() {
 
       {/* Create/Edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto scrollbar-none">
           <DialogHeader>
             <DialogTitle>{editingOrder ? "Editar pedido" : "Nuevo pedido a compras"}</DialogTitle>
           </DialogHeader>
@@ -427,10 +433,10 @@ export function OrdersPage() {
               <div className="space-y-1.5">
                 <Label>Categoría</Label>
                 <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as Category })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
+                  <SelectContent position="popper" className="duration-150 ease-out">
                     {CATEGORIES.map((c) => (
-                      <SelectItem key={c} value={c}>{categoryLabel(c)}</SelectItem>
+                      <SelectItem key={c} value={c} className="cursor-pointer">{categoryLabel(c)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -440,12 +446,12 @@ export function OrdersPage() {
               <div className="space-y-1.5">
                 <Label>Prioridad</Label>
                 <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v as OrderPriority })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="critical">Crítica</SelectItem>
-                    <SelectItem value="high">Alta</SelectItem>
-                    <SelectItem value="medium">Media</SelectItem>
-                    <SelectItem value="low">Baja</SelectItem>
+                  <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
+                  <SelectContent position="popper" className="duration-150 ease-out">
+                    <SelectItem value="critical" className="cursor-pointer">Crítica</SelectItem>
+                    <SelectItem value="high" className="cursor-pointer">Alta</SelectItem>
+                    <SelectItem value="medium" className="cursor-pointer">Media</SelectItem>
+                    <SelectItem value="low" className="cursor-pointer">Baja</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -456,21 +462,30 @@ export function OrdersPage() {
             </div>
             <div className="space-y-1.5">
               <Label>Motivo de la solicitud <span className="text-red-500">*</span></Label>
-              <Textarea
+              <AutoResizeTextarea
                 value={form.reason}
                 onChange={(e) => setForm({ ...form, reason: e.target.value })}
                 placeholder="Describí el motivo del pedido..."
-                rows={3}
+                rows={2}
+                minHeight={60}
+                maxHeight={220}
               />
             </div>
             <div className="space-y-1.5">
               <Label>Observaciones adicionales</Label>
-              <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} />
+              <AutoResizeTextarea 
+                value={form.notes} 
+                onChange={(e) => setForm({ ...form, notes: e.target.value })} 
+                placeholder="Detalles u observaciones adicionales..."
+                rows={2}
+                minHeight={60}
+                maxHeight={220}
+              />
             </div>
           </div>
           <DialogFooter className="flex flex-row items-center justify-end gap-2">
-            <Button onClick={handleSave}><Save className="size-4 mr-1.5" />{editingOrder ? "Guardar" : "Crear pedido"}</Button>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSave} className="cursor-pointer"><Save className="size-4 mr-1.5" />{editingOrder ? "Guardar" : "Crear pedido"}</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="cursor-pointer">Cancelar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
