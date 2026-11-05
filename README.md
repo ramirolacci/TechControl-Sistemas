@@ -49,6 +49,61 @@ TechControl se destaca por un diseño de interfaz nítido y moderno enfocado en 
 
 ---
 
+## 🚀 Instalación y Puesta en Marcha
+
+Sigue estos pasos para clonar, configurar y ejecutar el proyecto localmente en tu entorno de desarrollo.
+
+### 📋 Requisitos Previos
+
+- **Node.js**: v18.0.0 o superior (recomendado v20+).
+- **pnpm**: Gestor de paquetes recomendado (`npm install -g pnpm`).
+- **Git**: Para el control de versiones.
+
+---
+
+### ⚙️ Pasos de Instalación
+
+1. **Clonar el repositorio:**
+   ```bash
+   git clone https://github.com/tu-usuario/TechControl-Sistemas.git
+   cd TechControl-Sistemas
+   ```
+
+2. **Instalar dependencias con `pnpm`:**
+   ```bash
+   pnpm install
+   ```
+
+3. **Configurar las variables de entorno:**
+   Crea un archivo `.env` en la raíz del proyecto basándote en `.env.example`:
+   ```bash
+   cp .env.example .env
+   ```
+   Abre `.env` y completa las credenciales de tu proyecto de Supabase:
+   ```env
+   VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
+   VITE_SUPABASE_ANON_KEY=tu-anon-key-publica
+   ```
+
+4. **Iniciar el servidor de desarrollo:**
+   ```bash
+   pnpm run dev
+   ```
+   La aplicación se iniciará en `http://localhost:5173/` (o en la ruta base configurada).
+
+---
+
+### 📦 Scripts Disponibles
+
+| Comando | Descripción |
+| :--- | :--- |
+| `pnpm run dev` | Inicia el servidor de desarrollo con recarga rápida (HMR). |
+| `pnpm run build` | Valida tipos con TypeScript y compila el bundle de producción en `/dist`. |
+| `pnpm run typecheck` | Ejecuta la comprobación estática de tipos (`tsc --noEmit`). |
+| `pnpm run preview` | Previsualiza localmente la compilación de producción generada en `/dist`. |
+
+---
+
 ## 🖼️ Galería de la Interfaz
 
 <div align="center">
