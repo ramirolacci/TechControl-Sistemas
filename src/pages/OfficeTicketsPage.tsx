@@ -20,13 +20,13 @@ import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { es } from "date-fns/locale";
 import type { OfficeTicketCategory } from "@/types";
 
-const CATEGORIES: { id: OfficeTicketCategory; label: string; icon: any; color: string }[] = [
-  { id: "soporte", label: "Soporte", icon: Wrench, color: "bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20" },
-  { id: "redes", label: "Redes", icon: Network, color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20" },
-  { id: "servidores", label: "Servidores", icon: Database, color: "bg-purple-500/10 text-purple-500 border-purple-500/20 hover:bg-purple-500/20" },
-  { id: "mantenimiento", label: "Mantenimiento", icon: ShieldAlert, color: "bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20" },
-  { id: "desarrollo", label: "Desarrollo", icon: Code, color: "bg-pink-500/10 text-pink-500 border-pink-500/20 hover:bg-pink-500/20" },
-  { id: "otro", label: "Otro", icon: FileText, color: "bg-slate-500/10 text-slate-500 border-slate-500/20 hover:bg-slate-500/20" }
+const CATEGORIES: { id: OfficeTicketCategory; label: string; icon: any; color: string; activeColor: string; iconColor: string }[] = [
+  { id: "soporte", label: "Soporte", icon: Wrench, color: "bg-blue-500/10 text-blue-500 border-blue-500/20 hover:bg-blue-500/20", activeColor: "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-sm", iconColor: "text-blue-500" },
+  { id: "redes", label: "Redes", icon: Network, color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20", activeColor: "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 shadow-sm", iconColor: "text-emerald-500" },
+  { id: "servidores", label: "Servidores", icon: Database, color: "bg-purple-500/10 text-purple-500 border-purple-500/20 hover:bg-purple-500/20", activeColor: "bg-purple-600 text-white border-purple-600 hover:bg-purple-700 shadow-sm", iconColor: "text-purple-500" },
+  { id: "mantenimiento", label: "Mantenimiento", icon: ShieldAlert, color: "bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20", activeColor: "bg-amber-600 text-white border-amber-600 hover:bg-amber-700 shadow-sm", iconColor: "text-amber-500" },
+  { id: "desarrollo", label: "Desarrollo", icon: Code, color: "bg-pink-500/10 text-pink-500 border-pink-500/20 hover:bg-pink-500/20", activeColor: "bg-pink-600 text-white border-pink-600 hover:bg-pink-700 shadow-sm", iconColor: "text-pink-500" },
+  { id: "otro", label: "Otro", icon: FileText, color: "bg-slate-500/10 text-slate-500 border-slate-500/20 hover:bg-slate-500/20", activeColor: "bg-slate-600 text-white border-slate-600 hover:bg-slate-700 shadow-sm", iconColor: "text-slate-400" }
 ];
 
 const DURATIONS = [5, 10, 15, 30, 45, 60, 120];
@@ -712,12 +712,12 @@ export function OfficeTicketsPage() {
       </div>
 
       <Dialog open={!!editingTicket} onOpenChange={(open) => !open && setEditingTicket(null)}>
-        <DialogContent className="sm:max-w-[480px] rounded-2xl p-5 border border-muted-foreground/15">
+        <DialogContent className="sm:max-w-[480px] rounded-2xl p-5 border border-muted-foreground/15 no-scrollbar">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               Editar Tarea
               {editingTicket && (
-                <span className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded uppercase">
+                <span className="text-xs font-mono font-bold text-muted-foreground bg-muted border border-border/60 px-1.5 py-0.5 rounded uppercase">
                   #{getShortId(editingTicket.id)}
                 </span>
               )}
@@ -732,7 +732,7 @@ export function OfficeTicketsPage() {
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
                 required
-                className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium"
+                className="h-10 rounded-xl border-border/80 focus-visible:ring-neutral-400 font-medium"
               />
             </div>
 
@@ -749,12 +749,12 @@ export function OfficeTicketsPage() {
                       variant={isSelected ? "default" : "outline"}
                       className={`h-8 px-2.5 text-[11px] font-semibold rounded-lg transition-all ${
                         isSelected
-                          ? "bg-indigo-600 text-white shadow-sm border-indigo-600 hover:bg-indigo-700"
+                          ? `${c.activeColor} font-bold`
                           : "text-muted-foreground border-border/80 hover:text-foreground hover:bg-muted"
                       }`}
                       onClick={() => setEditCategory(c.id)}
                     >
-                      <CatIcon className="size-3 mr-1" />
+                      <CatIcon className={`size-3 mr-1 ${isSelected ? "text-white" : c.iconColor}`} />
                       {c.label}
                     </Button>
                   );
@@ -770,7 +770,7 @@ export function OfficeTicketsPage() {
                   value={editCustomCategory}
                   onChange={(e) => setEditCustomCategory(e.target.value)}
                   required
-                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 text-xs font-medium"
+                  className="h-10 rounded-xl border-border/80 focus-visible:ring-neutral-400 text-xs font-medium"
                 />
               </div>
             )}
@@ -783,7 +783,7 @@ export function OfficeTicketsPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full justify-start text-left font-normal h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 pr-10 relative bg-background text-xs"
+                      className="w-full justify-start text-left font-normal h-10 rounded-xl border-border/80 focus-visible:ring-neutral-400 pr-10 relative bg-background text-xs"
                     >
                       <span className="font-medium">
                         {editSelectedDate ? formatDate(
@@ -818,7 +818,7 @@ export function OfficeTicketsPage() {
                         variant={isSelected ? "default" : "outline"}
                         className={`h-7 px-1.5 text-[10px] font-semibold rounded-md ${
                           isSelected
-                            ? "bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700"
+                            ? "bg-white text-black font-bold border-white hover:bg-white/90 shadow-xs"
                             : "text-muted-foreground border-border/80 hover:text-foreground hover:bg-muted"
                         }`}
                         onClick={() => setEditDuration(dur)}
@@ -832,7 +832,7 @@ export function OfficeTicketsPage() {
             </div>
 
             <DialogFooter className="pt-2 flex flex-row items-center justify-end gap-2">
-              <Button type="submit" className="rounded-xl h-10 bg-indigo-600 hover:bg-indigo-700 text-xs">
+              <Button type="submit" className="rounded-xl h-10 px-5 bg-white text-black hover:bg-white/90 font-bold text-xs shadow-md border border-white/20">
                 Guardar cambios
               </Button>
               <Button type="button" variant="outline" className="rounded-xl h-10 text-xs" onClick={() => setEditingTicket(null)}>
