@@ -9,6 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { useApp } from "@/context/AppContext";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { toast } from "sonner";
@@ -16,13 +23,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import type { DatabaseCredential } from "@/types";
 
 const ENGINES = [
-  { id: "postgres", label: "PostgreSQL", color: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
-  { id: "mysql", label: "MySQL", color: "bg-orange-500/10 text-orange-500 border-orange-500/20" },
-  { id: "sqlserver", label: "SQL Server", color: "bg-red-500/10 text-red-500 border-red-500/20" },
-  { id: "mongodb", label: "MongoDB", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
-  { id: "oracle", label: "Oracle", color: "bg-rose-500/10 text-rose-500 border-rose-500/20" },
-  { id: "sqlite", label: "SQLite", color: "bg-sky-500/10 text-sky-500 border-sky-500/20" },
-  { id: "other", label: "Otro", color: "bg-slate-500/10 text-slate-500 border-slate-500/20" }
+  { id: "postgres", label: "PostgreSQL", color: "bg-blue-500/10 text-blue-500 border-blue-500/20", dotClass: "bg-blue-500" },
+  { id: "mysql", label: "MySQL", color: "bg-orange-500/10 text-orange-500 border-orange-500/20", dotClass: "bg-orange-500" },
+  { id: "sqlserver", label: "SQL Server", color: "bg-red-500/10 text-red-500 border-red-500/20", dotClass: "bg-red-500" },
+  { id: "mongodb", label: "MongoDB", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", dotClass: "bg-emerald-500" },
+  { id: "oracle", label: "Oracle", color: "bg-rose-500/10 text-rose-500 border-rose-500/20", dotClass: "bg-rose-500" },
+  { id: "sqlite", label: "SQLite", color: "bg-sky-500/10 text-sky-500 border-sky-500/20", dotClass: "bg-sky-500" },
+  { id: "other", label: "Otro", color: "bg-slate-500/10 text-slate-500 border-slate-500/20", dotClass: "bg-slate-500" }
 ];
 
 export function DatabasesPage() {
@@ -226,21 +233,32 @@ export function DatabasesPage() {
           </div>
 
           <div className="flex gap-2 w-full md:w-auto items-center shrink-0">
-            <select
-              value={filterEngine}
-              onChange={(e) => setFilterEngine(e.target.value)}
-              className="h-10 flex-1 min-w-0 rounded-xl border border-border/80 bg-background px-2.5 py-2 text-xs text-foreground focus-visible:ring-indigo-500 focus-visible:ring-1 focus-visible:outline-none"
-            >
-              <option value="all">Todos los motores</option>
-              {ENGINES.map(e => (
-                <option key={e.id} value={e.id}>{e.label}</option>
-              ))}
-            </select>
+            <Select value={filterEngine} onValueChange={setFilterEngine}>
+              <SelectTrigger className="h-10 w-full md:w-[190px] rounded-xl border-border/80 bg-background text-xs cursor-pointer shadow-xs">
+                <SelectValue placeholder="Todos los motores" />
+              </SelectTrigger>
+              <SelectContent position="popper" className="duration-150 ease-out">
+                <SelectItem value="all" className="cursor-pointer text-xs">
+                  <span className="flex items-center gap-2">
+                    <Database className="size-3.5 text-muted-foreground shrink-0" />
+                    <span>Todos los motores</span>
+                  </span>
+                </SelectItem>
+                {ENGINES.map(e => (
+                  <SelectItem key={e.id} value={e.id} className="cursor-pointer text-xs">
+                    <span className="flex items-center gap-2">
+                      <span className={`size-2 rounded-full shrink-0 ${e.dotClass}`} />
+                      <span>{e.label}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             <Button 
               type="button"
               variant="outline"
-              className="border-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 rounded-xl h-10 px-3 text-xs font-semibold flex-1 min-w-0 whitespace-nowrap justify-center"
+              className="border-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 rounded-xl h-10 px-3 text-xs font-semibold flex-1 min-w-0 whitespace-nowrap justify-center cursor-pointer"
               onClick={() => window.open("https://supabase.com/dashboard", "_blank")}
             >
               <ExternalLink className="size-3.5 mr-1.5 shrink-0" />
@@ -565,7 +583,7 @@ export function DatabasesPage() {
 
       {/* Add / Edit Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[480px] rounded-2xl p-5 border border-muted-foreground/15">
+        <DialogContent className="sm:max-w-[480px] rounded-2xl p-5 border border-muted-foreground/15 max-h-[90vh] overflow-y-auto scrollbar-none">
           <DialogHeader>
             <DialogTitle>{editingCred ? "Editar Conexión" : "Nueva Conexión"}</DialogTitle>
             <DialogDescription>
@@ -580,22 +598,28 @@ export function DatabasesPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium"
+                className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs placeholder:text-muted-foreground/45 placeholder:font-normal"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">Motor de DB</label>
-                <select
-                  value={engine}
-                  onChange={(e) => setEngine(e.target.value)}
-                  className="w-full h-10 rounded-xl border border-border/80 bg-background px-3 py-2 text-xs text-foreground focus-visible:ring-indigo-500 focus-visible:ring-1 focus-visible:outline-none"
-                >
-                  {ENGINES.map(e => (
-                    <option key={e.id} value={e.id}>{e.label}</option>
-                  ))}
-                </select>
+                <Select value={engine} onValueChange={(val) => setEngine(val)}>
+                  <SelectTrigger className="w-full h-10 rounded-xl border border-border/80 bg-background text-xs cursor-pointer shadow-xs">
+                    <SelectValue placeholder="Seleccionar motor" />
+                  </SelectTrigger>
+                  <SelectContent position="popper" className="duration-150 ease-out">
+                    {ENGINES.map(e => (
+                      <SelectItem key={e.id} value={e.id} className="cursor-pointer text-xs">
+                        <span className="flex items-center gap-2">
+                          <span className={`size-2 rounded-full shrink-0 ${e.dotClass}`} />
+                          <span>{e.label}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1.5">
@@ -604,7 +628,7 @@ export function DatabasesPage() {
                   placeholder="ej. 5432, 3306 (Opcional)"
                   value={port}
                   onChange={(e) => setPort(e.target.value)}
-                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs"
+                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs placeholder:text-muted-foreground/45 placeholder:font-normal"
                 />
               </div>
             </div>
@@ -617,7 +641,7 @@ export function DatabasesPage() {
                   value={host}
                   onChange={(e) => setHost(e.target.value)}
                   required
-                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs"
+                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs placeholder:text-muted-foreground/45 placeholder:font-normal"
                 />
               </div>
 
@@ -627,7 +651,7 @@ export function DatabasesPage() {
                   placeholder="ej. techcontrol_db (Opcional)"
                   value={databaseName}
                   onChange={(e) => setDatabaseName(e.target.value)}
-                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs"
+                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs placeholder:text-muted-foreground/45 placeholder:font-normal"
                 />
               </div>
             </div>
@@ -639,7 +663,7 @@ export function DatabasesPage() {
                   placeholder="ej. postgres, admin (Opcional)"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs"
+                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs placeholder:text-muted-foreground/45 placeholder:font-normal"
                 />
               </div>
 
@@ -650,7 +674,7 @@ export function DatabasesPage() {
                   placeholder="Contraseña de la base de datos (Opcional)"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs"
+                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs placeholder:text-muted-foreground/45 placeholder:font-normal"
                 />
               </div>
             </div>
@@ -662,7 +686,7 @@ export function DatabasesPage() {
                   placeholder="ej. Fabrica MES (Opcional)"
                   value={project1}
                   onChange={(e) => setProject1(e.target.value)}
-                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs"
+                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs placeholder:text-muted-foreground/45 placeholder:font-normal"
                 />
               </div>
 
@@ -672,7 +696,7 @@ export function DatabasesPage() {
                   placeholder="ej. Romi Rooms (Opcional)"
                   value={project2}
                   onChange={(e) => setProject2(e.target.value)}
-                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs"
+                  className="h-10 rounded-xl border-border/80 focus-visible:ring-indigo-500 font-medium text-xs placeholder:text-muted-foreground/45 placeholder:font-normal"
                 />
               </div>
             </div>
@@ -683,7 +707,7 @@ export function DatabasesPage() {
                 placeholder="Detalles sobre réplicas, accesos VPN, o configuraciones específicas de firewall..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="rounded-xl border-border/80 focus-visible:ring-indigo-500 text-xs resize-none"
+                className="rounded-xl border-border/80 focus-visible:ring-indigo-500 text-xs resize-none placeholder:text-muted-foreground/45 placeholder:font-normal"
                 rows={2}
               />
             </div>
