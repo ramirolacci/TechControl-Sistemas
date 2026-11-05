@@ -4,9 +4,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { AutoResizeTextarea } from "@/components/shared/AutoResizeTextarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useApp } from "@/context/AppContext";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -242,7 +242,7 @@ export function DataliveTVPage() {
 
       {/* General Info & Stats */}
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full">
           <div className="flex items-center gap-2 rounded-md border border-amber-400 bg-amber-100/80 px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400 shadow-sm">
             <Key className="size-3.5" />
             Acceso Universal para todas las TVs
@@ -250,11 +250,12 @@ export function DataliveTVPage() {
           <div className="h-px flex-1 bg-border/40" />
         </div>
         
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3">
-          <div className="flex items-center justify-between gap-2 rounded-lg border-2 border-primary/30 bg-primary/5 px-3 h-16 shadow-sm transition-all hover:bg-primary/10">
+        {/* Metric cards grid - expanded across screen */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
+          <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-primary/30 bg-primary/5 px-4 h-16 shadow-sm transition-all hover:bg-primary/10">
             <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-1.5 mb-0.5">
-                <User className="size-3 text-primary shrink-0" />
+                <User className="size-3.5 text-primary shrink-0" />
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground truncate">Usuario</span>
               </div>
               <span className="text-lg sm:text-xl font-black text-primary tracking-tight leading-none truncate">migusto</span>
@@ -264,10 +265,10 @@ export function DataliveTVPage() {
             </div>
           </div>
           
-          <div className="flex items-center justify-between gap-2 rounded-lg border-2 border-primary/30 bg-primary/5 px-3 h-16 shadow-sm transition-all hover:bg-primary/10">
+          <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-primary/30 bg-primary/5 px-4 h-16 shadow-sm transition-all hover:bg-primary/10">
             <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-1.5 mb-0.5">
-                <Key className="size-3 text-primary shrink-0" />
+                <Key className="size-3.5 text-primary shrink-0" />
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground truncate">PIN</span>
               </div>
               <span className="text-base sm:text-xl font-black font-mono tracking-[0.05em] text-primary leading-none truncate">85749621</span>
@@ -277,22 +278,21 @@ export function DataliveTVPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 sm:px-5 h-16">
-            <span className="text-xl sm:text-2xl font-bold text-foreground">{totalBranches}</span>
-            <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Sucursales</span>
+          <div className="flex items-center gap-3.5 rounded-xl border border-border/80 bg-muted/30 px-4 h-16 shadow-sm transition-all hover:bg-muted/40">
+            <span className="text-xl sm:text-2xl font-black text-foreground">{totalBranches}</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Sucursales</span>
           </div>
           
-          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 sm:px-5 h-16">
-            <span className="text-xl sm:text-2xl font-bold text-foreground">{totalDevices}</span>
-            <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Dispositivos</span>
+          <div className="flex items-center gap-3.5 rounded-xl border border-border/80 bg-muted/30 px-4 h-16 shadow-sm transition-all hover:bg-muted/40">
+            <span className="text-xl sm:text-2xl font-black text-foreground">{totalDevices}</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Dispositivos</span>
           </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="space-y-3">
-        {/* Search row - full width */}
-        <div className="relative w-full">
+      {/* Search, Filter & Action - All in one line */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar por sucursal, ID, nombre de TV..."
@@ -302,10 +302,9 @@ export function DataliveTVPage() {
           />
         </div>
 
-        {/* Filter and New device button row */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 shrink-0">
           <Select value={filterBranch} onValueChange={setFilterBranch}>
-            <SelectTrigger className="flex-1 min-w-0 sm:w-44 sm:flex-none">
+            <SelectTrigger className="w-[180px] sm:w-[200px] shrink-0 font-medium">
               <SelectValue placeholder="Sucursal" />
             </SelectTrigger>
             <SelectContent>
@@ -316,8 +315,8 @@ export function DataliveTVPage() {
             </SelectContent>
           </Select>
 
-          <Button onClick={openCreate} className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 w-fit">
-            <Plus className="size-4 mr-1.5" />
+          <Button onClick={openCreate} className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 gap-1.5 font-bold shadow-sm">
+            <Plus className="size-4" />
             Nuevo dispositivo
           </Button>
         </div>
@@ -353,9 +352,10 @@ export function DataliveTVPage() {
 
       {/* Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg no-scrollbar">
           <DialogHeader>
             <DialogTitle>{editingTV ? "Editar dispositivo" : "Registrar nuevo dispositivo"}</DialogTitle>
+            <DialogDescription className="sr-only">Detalles y configuración del dispositivo de cartelería digital</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="grid grid-cols-2 gap-3">
@@ -381,11 +381,17 @@ export function DataliveTVPage() {
             </div>
             <div className="space-y-1.5">
               <Label>Observaciones</Label>
-              <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} />
+              <AutoResizeTextarea
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                placeholder="Notas u observaciones adicionales sobre el dispositivo..."
+              />
             </div>
           </div>
           <DialogFooter className="flex flex-row items-center justify-end gap-2">
-            <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-primary-foreground"><Save className="size-4" />Guardar</Button>
+            <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-sm">
+              <Save className="size-4 mr-1.5" />Guardar
+            </Button>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
           </DialogFooter>
         </DialogContent>
