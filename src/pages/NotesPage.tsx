@@ -6,12 +6,52 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { useApp } from "@/context/AppContext";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { toast } from "sonner";
 import type { SystemNote } from "@/types";
 
 const CATEGORIES = ["General", "Credenciales", "Procedimientos", "IPs/Redes", "Contactos", "Licencias"];
+
+const CATEGORY_CONFIG: Record<string, { label: string; dotClass: string; badgeClass: string }> = {
+  General: {
+    label: "General",
+    dotClass: "bg-slate-400",
+    badgeClass: "bg-slate-500/10 text-slate-300 border-slate-500/20"
+  },
+  Credenciales: {
+    label: "Credenciales",
+    dotClass: "bg-amber-400",
+    badgeClass: "bg-amber-500/10 text-amber-300 border-amber-500/20"
+  },
+  Procedimientos: {
+    label: "Procedimientos",
+    dotClass: "bg-emerald-400",
+    badgeClass: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"
+  },
+  "IPs/Redes": {
+    label: "IPs/Redes",
+    dotClass: "bg-blue-400",
+    badgeClass: "bg-blue-500/10 text-blue-300 border-blue-500/20"
+  },
+  Contactos: {
+    label: "Contactos",
+    dotClass: "bg-rose-400",
+    badgeClass: "bg-rose-500/10 text-rose-300 border-rose-500/20"
+  },
+  Licencias: {
+    label: "Licencias",
+    dotClass: "bg-purple-400",
+    badgeClass: "bg-purple-500/10 text-purple-300 border-purple-500/20"
+  },
+};
 
 const getCategoryBadgeStyle = (category: string, isActive: boolean) => {
   if (isActive) {
@@ -151,8 +191,10 @@ export function NotesPage() {
 
   const handleCategoryChange = (val: string) => {
     setCategory(val);
-    updateNote(activeNoteId!, { category: val });
-    toast.success("Categoría actualizada");
+    if (activeNoteId) {
+      updateNote(activeNoteId, { category: val });
+      toast.success("Categoría actualizada");
+    }
   };
 
   const handleTogglePin = async (note: SystemNote) => {
@@ -223,9 +265,9 @@ export function NotesPage() {
   return (
     <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden bg-background">
       {/* Panel Izquierdo: Lista de Notas */}
-      <div className={`w-full md:w-80 border-r flex-col bg-muted/10 shrink-0 ${mobileView === 'editor' ? 'hidden md:flex' : 'flex mobile-slide-in'}`}>
+      <div className={`w-full md:w-[540px] lg:w-[600px] xl:w-[640px] border-r flex-col bg-muted/10 shrink-0 ${mobileView === 'editor' ? 'hidden md:flex' : 'flex mobile-slide-in'}`}>
         {/* Buscador & Nuevo */}
-        <div className="p-4 space-y-3">
+        <div className="p-3.5 space-y-2.5">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -236,32 +278,48 @@ export function NotesPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <Button size="icon" variant="outline" className="size-9 shrink-0" onClick={handleCreateNote} title="Crear nueva nota">
+            <Button size="icon" variant="outline" className="size-9 shrink-0 cursor-pointer" onClick={handleCreateNote} title="Crear nueva nota">
               <Plus className="size-4" />
             </Button>
           </div>
 
-          {/* Categorías */}
-          <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
+          {/* Categorías (Todas en una sola línea) */}
+          <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto scrollbar-none pt-0.5">
             <Button
               variant={selectedCategory === "all" ? "default" : "outline"}
               size="xs"
-              className="text-[10px] h-6 px-2.5 rounded-full shrink-0"
+              className={`text-[10.5px] h-6.5 px-2.5 rounded-full shrink-0 transition-all cursor-pointer ${
+                selectedCategory === "all"
+                  ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/80 border-border/70"
+              }`}
               onClick={() => setSelectedCategory("all")}
             >
               Todos
             </Button>
-            {CATEGORIES.map(cat => (
-              <Button
-                key={cat}
-                variant={selectedCategory === cat ? "default" : "outline"}
-                size="xs"
-                className="text-[10px] h-6 px-2.5 rounded-full shrink-0"
-                onClick={() => setSelectedCategory(cat)}
-              >
-                {cat}
-              </Button>
-            ))}
+            {CATEGORIES.map(cat => {
+              const isSelected = selectedCategory === cat;
+              return (
+                <Button
+                  key={cat}
+                  variant={isSelected ? "default" : "outline"}
+                  size="xs"
+                  className={`text-[10.5px] h-6.5 px-2.5 rounded-full shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/80 border-border/70"
+                  }`}
+                  onClick={() => setSelectedCategory(cat)}
+                >
+                  <span
+                    className={`size-1.5 rounded-full shrink-0 ${
+                      isSelected ? "bg-primary-foreground" : CATEGORY_CONFIG[cat]?.dotClass || "bg-slate-400"
+                    }`}
+                  />
+                  <span>{cat}</span>
+                </Button>
+              );
+            })}
           </div>
         </div>
 
@@ -385,20 +443,26 @@ export function NotesPage() {
           <div className="flex-1 flex flex-col p-4 md:p-6 space-y-4 h-full min-h-0">
             {/* Header del editor */}
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <Button variant="ghost" size="sm" className="md:hidden text-xs px-2 h-8" onClick={() => setMobileView('list')}>
                   <ArrowLeft className="size-3.5 mr-1" /> Lista
                 </Button>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase hidden sm:inline">Categoría:</span>
-                <select
-                  value={category}
-                  onChange={(e) => handleCategoryChange(e.target.value)}
-                  className="bg-transparent text-xs font-semibold text-primary border border-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  {CATEGORIES.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider hidden sm:inline">Categoría:</span>
+                <Select value={category} onValueChange={handleCategoryChange}>
+                  <SelectTrigger className="h-8.5 w-[170px] text-xs font-medium cursor-pointer bg-card/60 border-border/80 shadow-xs">
+                    <SelectValue placeholder="Seleccionar categoría" />
+                  </SelectTrigger>
+                  <SelectContent position="popper" className="duration-150 ease-out">
+                    {CATEGORIES.map((cat) => (
+                      <SelectItem key={cat} value={cat} className="cursor-pointer text-xs">
+                        <span className="flex items-center gap-2">
+                          <span className={`size-2 rounded-full shrink-0 ${CATEGORY_CONFIG[cat]?.dotClass || "bg-slate-400"}`} />
+                          <span>{cat}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex items-center gap-2">
@@ -407,14 +471,14 @@ export function NotesPage() {
                     Guardando...
                   </span>
                 )}
-                <Button variant="outline" size="sm" onClick={handleCopyContent} title="Copiar nota al portapapeles">
+                <Button variant="outline" size="sm" onClick={handleCopyContent} title="Copiar nota al portapapeles" className="cursor-pointer">
                   <Copy className="size-3.5 mr-1.5" /> Copiar todo
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleTogglePin(activeNote)}
-                  className={isPinned ? "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400" : ""}
+                  className={`cursor-pointer ${isPinned ? "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400" : ""}`}
                 >
                   <Pin className={`size-3.5 mr-1.5 ${isPinned ? "fill-current" : ""}`} /> 
                   {isPinned ? "Anclada" : "Anclar"}
@@ -448,7 +512,7 @@ export function NotesPage() {
               title="Guardá tus Datos y Notas"
               description="Creá notas importantes, credenciales de sistemas, procedimientos e IPs rápidas en un solo lugar seguro."
               action={
-                <Button onClick={handleCreateNote}>
+                <Button onClick={handleCreateNote} className="cursor-pointer">
                   <Plus className="size-4 mr-2" /> Crear primera nota
                 </Button>
               }
