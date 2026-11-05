@@ -118,22 +118,22 @@ export function PersonalPage() {
           <h1 className="text-2xl font-bold tracking-tight">Personal de Sistemas</h1>
           <p className="text-sm text-muted-foreground">Perfiles del equipo de sistemas y resumen de sus guardias operativas</p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="size-4" />
-          Registrar Integrante
-        </Button>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="relative w-full max-w-md">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar por nombre, rol, usuario..."
-            className="pl-8"
+            className="pl-8 w-full"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+        <Button onClick={openCreate} className="shrink-0 cursor-pointer">
+          <Plus className="size-4 mr-1.5" />
+          Registrar Integrante
+        </Button>
       </div>
 
       {filteredUsers.length === 0 ? (
